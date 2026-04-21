@@ -52,7 +52,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-02-16 16:38+0000\n"
-"PO-Revision-Date: 2026-03-21 09:23+0000\n"
+"PO-Revision-Date: 2026-04-17 11:30+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
 "Language-Team: Finnish <https://translate.odoo.com/projects/odoo-18/base/fi/>"
 "\n"
@@ -5236,7 +5236,7 @@ msgid ""
 "E-invoice implementation for Guatemala\n"
 msgstr ""
 "\n"
-"Sähköisen laskutuksen toteutus Guatemalaan\n"
+"Sähköisen laskutuksen toteutus Guatemalassa\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_ro_edi
@@ -7267,12 +7267,12 @@ msgid ""
 "The wizard used is similar as the one for the credit note.\n"
 msgstr ""
 "\n"
-"Monissa maissa veloitusilmoitusta käytetään olemassa olevan laskun määrien "
-"korottamiseen\n"
+"Monissa maissa veloituslaskua käytetään olemassa olevan laskun määrien "
+"korottamiseen,\n"
 "tai joissakin erityistapauksissa hyvityslaskun peruuttamiseen.\n"
-"Se on kuin tavallinen lasku, mutta yhteys alkuperäiseen laskuun on "
-"säilytettävä.  \n"
-"Ohjattu toiminto on samanlainen kuin hyvityslaskussa.\n"
+"Se on kuin tavallinen lasku, mutta yhteyttä alkuperäiseen laskuun on "
+"seurattava.  \n"
+"Ohjattu toiminto on samankaltainen kuin hyvityslaskussa.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_cn
@@ -20989,7 +20989,7 @@ msgstr "Virheellinen tiedostomuoto: %s"
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_users__barcode
 msgid "Badge ID"
-msgstr "Tunnuskortin ID"
+msgstr "Tunnisteen tunnus"
 
 #. module: base
 #: model:res.country,name:base.bs
@@ -25658,12 +25658,12 @@ msgstr "Dokumenttipohja"
 #: model:ir.module.category,name:base.module_category_productivity_documents
 #: model:ir.module.module,shortdesc:base.module_documents
 msgid "Documents"
-msgstr "Dokumentit"
+msgstr "Asiakirjat"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_account
 msgid "Documents - Accounting"
-msgstr "Dokumentit - Kirjanpito"
+msgstr "Asiakirjat - Kirjanpito"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_approvals
@@ -25673,12 +25673,12 @@ msgstr "Asiakirjat - Hyväksynnät"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_l10n_be_hr_payroll
 msgid "Documents - Belgian Payroll"
-msgstr "Dokumentit - Belgian palkanlaskenta"
+msgstr "Asiakirjat - Belgian palkanlaskenta"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_hr_contract
 msgid "Documents - Contracts"
-msgstr "Dokumentit - sopimukset"
+msgstr "Asiakirjat - sopimukset"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_hr_expense
@@ -25688,17 +25688,17 @@ msgstr "Asiakirjat - Kulut"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_fsm
 msgid "Documents - FSM"
-msgstr "Dokumentit - Kenttätyö"
+msgstr "Asiakirjat - Kenttätyö"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_fleet
 msgid "Documents - Fleet"
-msgstr "Dokumentit - laivue"
+msgstr "Asiakirjat - Kuljetuskalusto"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_hr
 msgid "Documents - HR"
-msgstr "Dokumentit - HR"
+msgstr "Asiakirjat - HR"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_l10n_hk_hr_payroll
@@ -25718,32 +25718,32 @@ msgstr "Asiakirjat - Kenian palkanlaskenta"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_hr_payroll
 msgid "Documents - Payroll"
-msgstr "Dokumentit - Palkkahallinto"
+msgstr "Asiakirjat - Palkanlaskenta"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_product
 msgid "Documents - Product"
-msgstr "Dokumentit - Tuote"
+msgstr "Asiakirjat - Tuote"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_project_sale
 msgid "Documents - Project - Sale"
-msgstr "Dokumentit - Projekti - Myynti"
+msgstr "Asiakirjat - Projekti - Myynti"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_project
 msgid "Documents - Projects"
-msgstr "Dokumentit - Projektit"
+msgstr "Asiakirjat - Projektit"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_hr_recruitment
 msgid "Documents - Recruitment"
-msgstr "Dokumentit - Rekrytointi"
+msgstr "Asiakirjat - Rekrytointi"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_sign
 msgid "Documents - Signatures"
-msgstr "Dokumentit - Allekirjoitukset"
+msgstr "Asiakirjat - Allekirjoitukset"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_l10n_ch_hr_payroll
@@ -25753,19 +25753,19 @@ msgstr "Asiakirjat - Sveitsin palkanlaskenta"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_hr_holidays
 msgid "Documents - Time Off"
-msgstr "Dokumentit - Vapaat"
+msgstr "Asiakirjat - Vapaat"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_project_sign
 msgid "Documents Project Sign"
-msgstr "Dokumentit Projektin allekirjoitus"
+msgstr "Projektin allekirjoitusasiakirjat"
 
 #. module: base
 #: model:ir.module.module,description:base.module_documents_spreadsheet
 #: model:ir.module.module,shortdesc:base.module_documents_spreadsheet
 #: model:ir.module.module,summary:base.module_documents_spreadsheet
 msgid "Documents Spreadsheet"
-msgstr "Dokumentit taulukkolaskennan työkirja"
+msgstr "Datataulukkoasiakirjat"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_documents_account_peppol
@@ -25775,7 +25775,7 @@ msgstr "Peppolin asiakirjat"
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.view_base_module_uninstall
 msgid "Documents to Delete"
-msgstr "Dokumentit poistettavaksi"
+msgstr "Poistettavat asiakirjat"
 
 #. module: base
 #: model:res.currency,currency_unit_label:base.AUD
@@ -27987,7 +27987,7 @@ msgstr "Kentän nimi"
 #: model:ir.module.category,name:base.module_category_services_field_service
 #: model:ir.module.module,shortdesc:base.module_industry_fsm
 msgid "Field Service"
-msgstr "Kenttätyön ohjaus"
+msgstr "Kenttähuolto"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_industry_fsm_sale
@@ -32166,7 +32166,7 @@ msgstr "Kiribati"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_website_sale_mrp
 msgid "Kit Availability"
-msgstr "Paketin saatavuus"
+msgstr "Setin saatavuus"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_sale_mrp_renting
@@ -34074,7 +34074,7 @@ msgstr "Massapostitus tekstiviesteinä myyntitilauksilla"
 #: model:ir.module.module,description:base.module_hr_recruitment_sms
 #: model:ir.module.module,summary:base.module_hr_recruitment_sms
 msgid "Mass mailing sms to job applicants"
-msgstr "Joukkoviestien lähettäminen työnhakijoille (SMS)"
+msgstr "Joukkotekstiviestien lähettäminen työnhakijoille"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_mrp_mps
@@ -35316,7 +35316,7 @@ msgstr "Uutiskirjeen tilauspainike"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_website_mass_mailing_sms
 msgid "Newsletter Subscribe SMS Template"
-msgstr "Uutiskirjeen tilaus SMS malli"
+msgstr "Uutiskirjeen tilauksen tekstiviestipohja"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_cron__nextcall
@@ -36308,112 +36308,116 @@ msgid ""
 "Compare revenues with forecasts and budgets in real time.\n"
 "\n"
 msgstr ""
-"Odoo henkilöstöhallinto\n"
+"Odoo Henkilöstöhallinto\n"
 "--------------------\n"
 "\n"
-"Odoo <a href=\"https://www.odoo.com/app/employees\">Human Resourcesin</a> "
-"avulla,\n"
-"hallita yrityksesi tärkeintä voimavaraa: Ihmiset\n"
+"Odoon <a href=\"https://www.odoo.com/app/employees\">Henkilöstöhallinto</a>-"
+"sovelluksella\n"
+"hallitset yrityksesi tärkeintä voimavaraa: Ihmisiä\n"
 "\n"
-"Saat kaikki HR-toiminnot hallintaan helposti: tiedon jakaminen, "
-"rekrytoinnit,\n"
-"arvioinnit, työaikataulut, sopimukset, läsnäolot, palkanlaskenta jne.\n"
+"Saat kaikki henkilöstöhallinnon operaatiosi helposti haallintaasi: tiedon "
+"jakaminen, rekrytoinnit,\n"
+"arvioinnit, työaikakirjaukset, sopimukset, läsnäolot, palkanlaskenta, jne.\n"
 "\n"
-"Jokaisesta tarpeesta huolehtii oma sovellus, jonka aktivoit pyynnöstäsi.\n"
+"Kuhunkin tarpeeseen on olemassa oma sovelluksensa, joka aktivoidaan "
+"pyynnöstäsi.\n"
 "\n"
-"Hallitse työntekijöitäsi\n"
+"Hallinnoi työntekijöitäsi\n"
 "---------------------\n"
 "\n"
-"Valvo kaikkia tärkeitä tietoja yrityksesi osoitekirjassa. Jotkut\n"
-"tietoja on rajoitettu henkilöstöpäälliköille, toiset ovat julkisia, jotta "
-"niitä voi helposti katsoa\n"
-"kollegoille.\n"
+"Valvo kaikkia tärkeitä tietoja yrityksesi osoitekirjassa. Osan\n"
+"tiedoista voi rajoittaa henkilöstöpäälliköille, muiden tietojen ollessa "
+"kaikkien kollegoiden\n"
+"katseltavissa.\n"
 "\n"
-"Tallenna työntekijäsopimukset ja saat hälytyksiä, kun ne on uusittava.\n"
+"Tallenna työntekijöiden sopimukset ja vastaanota ilmoituksia, kun ne on "
+"uusittava.\n"
 "\n"
-"Tehosta rekrytointiprosessia\n"
+"Suoraviivaista rekrytointiprosessi\n"
 "-----------------------------------\n"
 "\n"
-"Hakemistoi ansioluettelot, seuraa hakijoita ja etsi profiileja <a "
-"href=\"https://www.odoo.com/app/employees\">Odoo HR</a>:n avulla.\n"
+"Indeksoi ansioluettelot, seuraa hakijoita ja etsi profiileja <a "
+"href=\"https://www.odoo.com/app/employees\">Odoo Henkilöstöhallinto</a>-"
+"sovelluksen avulla.\n"
 "\n"
 "Julkaise työtarjouksia ja seuraa jokaista vastaanotettua hakemusta. Seuraa "
-"hakijoita\n"
-"rekrytointiprosessissa älykkään kanban-näkymän avulla.\n"
+"hakijoita läpi\n"
+"rekrytointiprosessin älykkäällä kanban-näkymällä.\n"
 "\n"
-"Säästä aikaa automatisoimalla osa viestinnästä sähköpostimallien avulla. "
-"Ansioluettelot ovat\n"
+"Säästä aikaa automatisoimalla osa viestinnästä sähköpostipohjien avulla. "
+"Ansioluettelot\n"
 "indeksoidaan automaattisesti, joten voit helposti etsiä tiettyjä "
 "profiileja.\n"
 "\n"
 "Yrityksen sosiaalinen verkosto\n"
 "-------------------------\n"
 "\n"
-"Hajota tietosiilot. Jaa tietoa ja parhaita käytäntöjä kaikkien kesken\n"
+"Hajoita tietosiilot. Jaa tietoa sekä parhaita käytäntöjä kaikkien\n"
 "työntekijöiden kesken. Seuraa tiettyjä henkilöitä tai asiakirjoja ja liity "
-"kiinnostuksen kohteena oleviin ryhmiin\n"
-"jakaa asiantuntemusta ja asiakirjoja.\n"
+"kiinnostaviin ryhmiin, joissa\n"
+"jaetaan asiantuntemusta tai asiakirjoja.\n"
 "\n"
-"Ole vuorovaikutuksessa työtovereidesi kanssa reaaliaikaisesti verkkosivuston "
-"live-chatin avulla.\n"
+"Ole vuorovaikutuksessa työtovereidesi kanssa reaaliajassa verkkosivuston "
+"livechatin kautta.\n"
 "\n"
-"Seuraa aikaa ja läsnäoloja\n"
+"Seuraa ajankäyttöä ja läsnäoloja\n"
 "--------------------------\n"
 "\n"
-"Seuraa ajankäyttöä projektin, asiakkaan tai tehtävän mukaan. Se on helppo "
-"kirjata\n"
-"työaikakirjanpitoa tai tarkistaa läsnäolot kunkin työntekijän osalta. Hanki "
-"analyyttinen kirjanpito\n"
-"kirjataan automaattisesti projekteihisi käytetyn ajan perusteella.\n"
+"Seuraa projektiin, asiakkaaseen tai tehtävään käytettyä aikaa. Työt on "
+"helppo kirjata\n"
+"työaikakirjauksiin sekä läsnäolot tarkistaa kunkin työntekijän osalta. Saat "
+"analyyttisen kirjanpidon\n"
+"automaattisesti projekteihin käytetyn ajan perusteella.\n"
 "\n"
-"Vapaa-ajan hallinta\n"
-"-----------------\n"
+"Vapaiden hallinta\n"
+"-------------------\n"
 "\n"
-"Seuraa kunkin työntekijän keräämiä lomapäiviä. Työntekijät syöttävät\n"
-"pyynnöt (palkalliset vapaat, sairauslomat jne.), jotka esimiehet voivat "
-"hyväksyä ja\n"
-"vahvistaa. Kaikki tapahtuu vain muutamalla klikkauksella. Kunkin työntekijän "
-"esityslista on\n"
+"Seuraa kunkin työntekijän kerryttämiä lomapäiviä. Työntekijät lähettävät\n"
+"pyyntönsä (palkalliset vapaat, sairauslomat, jne.) esihenkilölle "
+"hyväksyttäväksi ja\n"
+"vahvistettavaksi. Kaikki tapahtuu vain muutamalla klikkauksella. Jokaisen "
+"työntekijän agenda\n"
 "päivitetään vastaavasti.\n"
 "\n"
-"Seuraa työntekijän kuluja\n"
+"Seuraa työntekijöiden kuluja\n"
 "-------------------------------\n"
 "\n"
-"Hankkiudu eroon paperitöistä ja seuraa työntekijän kuluja suoraan Odoossa.\n"
-"Älä hukkaa aikaa tai rahaa valvomalla koko virtausta: kulujen validointi,\n"
-"työntekijöiden korvaukset, kirjaaminen kirjanpitoon ja uudelleen laskutus\n"
-"asiakkaille.\n"
+"Hankkiudu eroon paperikuiteista; seuraa työntekijän kuluja suoraan Odoossa.\n"
+"Älä hukkaa aikaa tai rahaa valvomalla koko työnkulkua: kulujen "
+"vahvistaminen,\n"
+"työntekijöiden korvaukset, kirjanpidon kirjaukset ja asiakkaiden\n"
+"uudelleenlaskutus.\n"
 "\n"
 "Seuraa säännöllisiä arviointeja\n"
 "--------------------------\n"
 "\n"
-"Laadi työntekijöillesi arviointisuunnitelmat ja/tai -kyselyt ja seuraa, "
-"miten heidän\n"
-"kehitystä. Määrittele haastattelujen vaiheet ja Odoo ilmoittaa esimiehille "
-"tai\n"
-"alaiset automaattisesti arvioinnin valmisteluun. Seuraa edistymistä\n"
-"henkilöstöäsi säännöllisesti.\n"
+"Laadi työntekijöillesi arviointisuunnitelmat ja/tai -kyselyt sekä seuraa "
+"heidän\n"
+"kehitystään. Määrittele haastatteluvaiheet ja Odoo muistuttaa esihenkilöitä "
+"sekä\n"
+"alaisia automaattisesti valmistautumaan arviointiin. Seuraa henkilöstösi\n"
+"edistymistä säännöllisesti.\n"
 "\n"
-"Lisää sitoutumista pelillistämisen avulla\n"
+"Paranna sitoutumista pelillistämisen avulla\n"
 "----------------------------------\n"
 "\n"
-"### Määrittele selkeä tavoite ja anna reaaliaikaista palautetta\n"
+"### Määritä selkeä tavoite ja anna reaaliaikaista palautetta\n"
 "\n"
 "Innosta saavuttamaan tuloksia haasteiden, tavoitteiden ja palkkioiden "
-"avulla. Määrittele selkeät tavoitteet\n"
-"ja anna reaaliaikaista palautetta ja konkreettisia tuloksia. Esittele "
-"huippu\n"
-"suorittajia koko kanavalle ja anna julkisesti tunnustusta hyvin tehdystä "
-"työstä.\n"
+"avulla. Määritä selkeät tavoitteet\n"
+"ja anna reaaliaikaista palautetta sekä konkreettisia tuloksia. Esittele "
+"eniten\n"
+"pisteitä keränneet työntekijät koko kanavalle antaaksesi julkisen "
+"tunnustuksen hyvin tehdystä työstä.\n"
 "\n"
-"### Leaderboardit\n"
+"### Pistetaulukot\n"
 "\n"
-"Edistä johtajia ja kilpailua myyntitiimin keskuudessa "
-"suorituskykysuhteilla.\n"
+"Kannusta johtamiseen ja kilpailemiseen myyntitiimin keskuudessa "
+"suorituskykytasojen avulla.\n"
 "\n"
 "### Henkilökohtaiset tavoitteet\n"
 "\n"
-"Määritä käyttäjille selkeät tavoitteet, jotta he ovat linjassa yrityksen "
+"Määritä käyttäjille selkeät tavoitteet, jotka ovat linjassa yrityksen "
 "tavoitteiden kanssa.\n"
 "\n"
 "### Tiimin tavoitteet\n"
@@ -38829,7 +38833,7 @@ msgstr ""
 "Laskumme on maksettava 21 työpäivän kuluessa, ellei laskussa tai tilauksessa "
 "ole ilmoitettu muuta maksuaikaa. Jos laskua ei makseta eräpäivään mennessä, "
 "My Company (San Francisco) pidättää oikeuden vaatia kiinteää korkoa, jonka "
-"määrä on 10% of jäljellä olevasta erääntyneestä summasta. My Company (San "
+"määrä on 10% jäljellä olevasta erääntyneestä summasta. My Company (San "
 "Francisco) on oikeutettu keskeyttämään palvelujen tarjoamisen ilman "
 "ennakkovaroitusta, jos maksu viivästyy."
 
@@ -39883,7 +39887,7 @@ msgstr "Personal Trainer"
 #: model_terms:res.partner,website_description:base.res_partner_2
 #: model_terms:res.partner,website_description:base.res_partner_4
 msgid "Personnel Administration"
-msgstr "Henkilökunnan hallinto"
+msgstr "Henkilöstöhallinto"
 
 #. module: base
 #: model:res.country,name:base.pe
@@ -40623,7 +40627,7 @@ msgstr "Projekti - Osto - Varasto"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_project_sms
 msgid "Project - SMS"
-msgstr "Projekti - SMS"
+msgstr "Projekti - Tekstiviesti"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_project_sale_expense
@@ -41621,7 +41625,7 @@ msgstr "Rekrytointi"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_hr_recruitment_sms
 msgid "Recruitment - SMS"
-msgstr "Rekrytointi – SMS"
+msgstr "Rekrytointi - Tekstiviesti"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_hr_recruitment_sign
@@ -41901,7 +41905,7 @@ msgstr "Raportti"
 #. module: base
 #: model:ir.model,name:base.model_ir_actions_report
 msgid "Report Action"
-msgstr "Raporttin"
+msgstr "Raporttitoiminto"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_actions_report__report_file
@@ -42395,7 +42399,7 @@ msgstr "Tekstiviestimarkkinointi markkinoinnin automaatiossa"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_test_mail_sms
 msgid "SMS Tests"
-msgstr "SMS-testit"
+msgstr "Tekstiviestitestit"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_test_mail_sms
@@ -42405,12 +42409,12 @@ msgstr "Tekstiviestitestit: tekstiviestien esitykset ja testit"
 #. module: base
 #: model:ir.module.module,summary:base.module_sms
 msgid "SMS Text Messaging"
-msgstr "SMS-tekstiviestit"
+msgstr "Tekstiviestintä"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_sms
 msgid "SMS gateway"
-msgstr "SMS gateway"
+msgstr "Tekstiviestiyhdyskäytävä"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_crm_sms
@@ -42573,7 +42577,7 @@ msgstr "Myynti- ja ostotilausten EDI-testit: Varmista työnkulun iskunkestävyys
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_sale_sms
 msgid "Sale - SMS"
-msgstr "Myynti - SMS"
+msgstr "Myynti - Tekstiviestit"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_sale_account_accountant
@@ -44621,7 +44625,7 @@ msgstr "Sterling"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_stock_sms
 msgid "Stock - SMS"
-msgstr "Varasto - SMS"
+msgstr "Varasto - Tekstiviestit"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_stock_accountant
@@ -45144,7 +45148,7 @@ msgstr "Kykyjenhankinta"
 #: model_terms:res.partner,website_description:base.res_partner_2
 #: model_terms:res.partner,website_description:base.res_partner_4
 msgid "Talent Management"
-msgstr "Taitojen hallinta"
+msgstr "Kykyjen hallinta"
 
 #. module: base
 #: model:res.currency,currency_subunit_label:base.MWK
@@ -47565,7 +47569,7 @@ msgstr "Traces Sync"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_mass_mailing_event_track_sms
 msgid "Track Speakers SMS Marketing"
-msgstr "Esiintyjien SMS-markkinointi"
+msgstr "Seuraa puhujien tekstiviestimarkkinointia"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_attendance
@@ -50582,7 +50586,7 @@ msgstr "näyttää työajat työntekijän sopimuksista"
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.wizard_lang_export
 msgid "documentation"
-msgstr "dokumentointi"
+msgstr "dokumentaatio"
 
 #. module: base
 #: model:ir.model.fields.selection,name:base.selection__base_module_update__state__done

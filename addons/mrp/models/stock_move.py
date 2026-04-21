@@ -471,7 +471,11 @@ class StockMove(models.Model):
                 self = other_move + updated_product_move
         if self.env.context.get('force_manual_consumption'):
             vals['manual_consumption'] = True
-        if not self.env.context.get('auto_conso') and any(cmd[0] == Command.CREATE for cmd in vals.get('move_line_ids', [])):
+        if (
+            not self.env.context.get("auto_conso")
+            and any(cmd[0] == Command.CREATE for cmd in vals.get("move_line_ids", []))
+            and all(move.raw_material_production_id for move in self)
+        ):
             vals['manual_consumption'] = True
             vals['picked'] = True
         if 'product_uom_qty' in vals and 'move_line_ids' in vals:

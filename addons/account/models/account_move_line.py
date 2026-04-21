@@ -502,7 +502,9 @@ class AccountMoveLine(models.Model):
     def _compute_name(self):
         def get_name(line):
             values = []
-            if line.partner_id.lang:
+            if line.move_id.partner_id.lang:
+                product = line.product_id.with_context(lang=line.move_id.partner_id.lang)
+            elif line.partner_id.lang:
                 product = line.product_id.with_context(lang=line.partner_id.lang)
             else:
                 product = line.product_id
@@ -701,14 +703,22 @@ class AccountMoveLine(models.Model):
         # get the where clause
         query = self._where_calc(list(self.env.context.get('domain_cumulated_balance') or []))
         sql_order = self._order_to_sql(self.env.context.get('order_cumulated_balance'), query, reverse=True)
-        result = dict(self.env.execute_query(query.select(
+
+        subquery = query.subselect(
             SQL.identifier(query.table, "id"),
             SQL(
                 "SUM(%s) OVER (ORDER BY %s ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)",
                 SQL.identifier(query.table, "balance"),
                 sql_order,
             ),
-        )))
+        )
+        result = dict(self.env.execute_query(
+            SQL(
+                "SELECT * FROM (%(subquery)s) AS aml WHERE id = ANY(%(ids)s)",
+                subquery=subquery,
+                ids=self.ids,
+            ),
+        ))
         for record in self:
             record.cumulated_balance = result[record.id]
 
@@ -1778,8 +1788,11 @@ class AccountMoveLine(models.Model):
     @api.ondelete(at_uninstall=False)
     def _unlink_except_posted(self):
         # Prevent deleting lines on posted entries
-        if not self._context.get('force_delete') and any(m.state == 'posted' for m in self.move_id):
-            raise UserError(_("You can't delete a posted journal item. Don’t play games with your accounting records; reset the journal entry to draft before deleting it."))
+        if not self.env.context.get('force_delete'):
+            non_zero_lines = self.filtered(lambda l: l.balance or l.amount_currency)
+            restricted = non_zero_lines.move_id.filtered(lambda m: m.state == 'posted')
+            if restricted:
+                raise UserError(_("You can't delete a posted journal item. Don’t play games with your accounting records; reset the journal entry to draft before deleting it."))
 
     @api.ondelete(at_uninstall=False)
     def _prevent_automatic_line_deletion(self):
@@ -1811,8 +1824,10 @@ class AccountMoveLine(models.Model):
         # Check the lines are not reconciled (partially or not).
         self._check_reconciliation()
 
-        # Check the lock date. (Only relevant if the move is posted)
-        self.move_id.filtered(lambda m: m.state == 'posted')._check_fiscal_lock_dates()
+        # Check the lock date. (Only relevant if the move is posted and non zero lines)
+        non_zero_lines = self.filtered(lambda l: l.balance or l.amount_currency)
+        moves_to_check = non_zero_lines.move_id.filtered(lambda m: m.state == 'posted')
+        moves_to_check._check_fiscal_lock_dates()
 
         # Check the tax lock date.
         self._check_tax_lock_date()
@@ -2968,7 +2983,7 @@ class AccountMoveLine(models.Model):
 
         # ==== Create the move ====
         exchange_moves = self.env['account.move'].create(exchange_move_values_list)
-        exchange_moves._post(soft=False)
+        exchange_moves.with_context(validate_analytic=False)._post(soft=False)
 
         # ==== Reconcile ====
         reconciliation_plan = []
@@ -3478,17 +3493,24 @@ class AccountMoveLine(models.Model):
         return self._filter_reconciled_by_number(self._reconciled_by_number())
 
     def _get_attachment_domains(self):
-        self.ensure_one()
         domains = [[
             ('res_model', '=', 'account.move'),
-            ('res_id', '=', self.move_id.id),
+            ('res_id', 'in', self.move_id.ids),
             ('res_field', 'in', (False, 'invoice_pdf_report_file')),
         ]]
         if self.statement_id:
-            domains.append([('res_model', '=', 'account.bank.statement'), ('res_id', '=', self.statement_id.id)])
+            domains.append([('res_model', '=', 'account.bank.statement'), ('res_id', 'in', self.statement_id.ids)])
         if self.payment_id:
-            domains.append([('res_model', '=', 'account.payment'), ('res_id', '=', self.payment_id.id)])
+            domains.append([('res_model', '=', 'account.payment'), ('res_id', 'in', self.payment_id.ids)])
         return domains
+
+    @api.model
+    def _get_attachment_by_record(self, id_model2attachments, move_line):
+        return (
+            id_model2attachments.get(('account.move', move_line.move_id.id))
+            or id_model2attachments.get(('account.bank.statement', move_line.statement_id.id))
+            or id_model2attachments.get(('account.payment', move_line.payment_id.id))
+        )
 
     @api.model
     def _get_tax_exigible_domain(self):
