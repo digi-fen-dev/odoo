@@ -1,13 +1,14 @@
-from datetime import datetime
 from markupsafe import Markup
 
 from odoo import _, api, models
 from odoo.addons.base.models.res_bank import sanitize_account_number
 from odoo.exceptions import UserError, ValidationError
-from odoo.tools import float_compare, float_is_zero, float_repr, format_list
+from odoo.tools import float_compare, float_is_zero, float_repr, format_list, html2plaintext
 from odoo.tools.float_utils import float_round
+from odoo.tools.translate import _lt
 from odoo.tools.misc import clean_context, formatLang, html_escape
 from odoo.tools.xml_utils import find_xml_value
+from datetime import datetime
 
 # -------------------------------------------------------------------------
 # UNIT OF MEASURE
@@ -131,6 +132,11 @@ EUROPEAN_ECONOMIC_AREA_COUNTRY_CODES = {
     'IS', 'LI', 'NO',
 }
 
+COCONTRACTANT_DEFAULT_NOTE = _lt('Reverse charge: In the absence of a written objection within one month of receipt of the invoice, '
+                              'the customer is deemed to acknowledge that they are a taxable person required to file periodic returns. '
+                              'If this condition is not met, the customer will be liable for the payment of the tax, interest, '
+                              'and penalties due in relation to this condition.')
+
 # -------------------------------------------------------------------------
 # SUPPORTED FILE TYPES FOR IMPORT
 # -------------------------------------------------------------------------
@@ -148,40 +154,39 @@ class FloatFmt(float):
     """ A float with a given precision.
     The precision is used when formatting the float.
     """
-    def __new__(cls, value, min_dp=None, max_dp=None):
+    def __new__(cls, value, min_dp=2, max_dp=None):
         return super().__new__(cls, value)
 
-    def __init__(self, value, min_dp=None, max_dp=None):
-        if min_dp is None and max_dp is None:
-            self.min_dp = 2
-            self.max_dp = 2
-            return
-        if min_dp is None and max_dp is not None:
-            self.min_dp = self.max_dp = max_dp
-            return
-        if min_dp is not None and max_dp is None:
-            # Determine the most suitable max_dp.
-            # We want 180.74999999999997 to compute a max_dp of 2 but 0.01110515963896 to stay with the full number of decimals.
-            max_dp = max(len(str(float(value or 0.0)).split('.')[1]), min_dp)
-            while True:
-                if max_dp == min_dp:
-                    break
-                if not float_is_zero(round(value, max_dp - 1) - value, precision_digits=11):
-                    break
-                max_dp = max_dp - 1
-
+    def __init__(self, value, min_dp=2, max_dp=None):
         self.min_dp = min_dp
         self.max_dp = max_dp
 
     def __str__(self):
+        if not isinstance(self.min_dp, int) or (self.max_dp is not None and not isinstance(self.max_dp, int)):
+            return "<FloatFmt()>"
         self_float = float(self)
-        amount_str = float_repr(self_float, self.max_dp)
-        num_trailing_zeros = len(amount_str) - len(amount_str.rstrip('0'))
-        return float_repr(self_float, max(self.max_dp - num_trailing_zeros, self.min_dp))
+        min_dp_int = int(self.min_dp)
+        if self.max_dp is None:
+            return float_repr(self_float, min_dp_int)
+        else:
+            # Format the float to between self.min_dp and self.max_dp decimal places.
+            # We start by formatting to self.max_dp, and then remove trailing zeros,
+            # but always keep at least self.min_dp decimal places.
+            max_dp_int = int(self.max_dp)
+            amount_max_dp = float_repr(self_float, max_dp_int)
+            num_trailing_zeros = len(amount_max_dp) - len(amount_max_dp.rstrip('0'))
+            return float_repr(self_float, max(max_dp_int - num_trailing_zeros, min_dp_int))
 
     def __repr__(self):
+        if not isinstance(self.min_dp, int) or (self.max_dp is not None and not isinstance(self.max_dp, int)):
+            return "<FloatFmt()>"
         self_float = float(self)
-        return f"FloatFmt({self_float!r}, {self.min_dp!r}, {self.max_dp!r})"
+        min_dp_int = int(self.min_dp)
+        if self.max_dp is None:
+            return f"FloatFmt({self_float!r}, {min_dp_int!r})"
+        else:
+            max_dp_int = int(self.max_dp)
+            return f"FloatFmt({self_float!r}, {min_dp_int!r}, {max_dp_int!r})"
 
 
 class AccountEdiCommon(models.AbstractModel):
@@ -227,6 +232,15 @@ class AccountEdiCommon(models.AbstractModel):
     def _can_export_selfbilling(self):
         return False
 
+    def _get_belgian_cocontractant_note(self, customer, supplier):
+        invoice = self.env.context.get('tax_exemption_reason_invoice')
+        if invoice and customer.country_id.code == 'BE' and supplier.country_id == customer.country_id and invoice:
+            co_contractant = self.env['account.chart.template'].ref('fiscal_position_template_4', raise_if_not_found=False)
+            if co_contractant and invoice.fiscal_position_id == co_contractant:
+                note = html2plaintext(invoice.fiscal_position_id.note) if invoice.fiscal_position_id.note else ''
+                return note or COCONTRACTANT_DEFAULT_NOTE
+        return ''
+
     # -------------------------------------------------------------------------
     # TAXES
     # -------------------------------------------------------------------------
@@ -268,6 +282,10 @@ class AccountEdiCommon(models.AbstractModel):
                 return create_dict(tax_category_code='L')
             if customer.zip[:2] in ('51', '52'):
                 return create_dict(tax_category_code='M')  # Ceuta & Mellila
+
+        cocontractant_note = self._get_belgian_cocontractant_note(customer, supplier)
+        if cocontractant_note:
+            return create_dict(tax_category_code='AE', tax_exemption_reason_code='VATEX-EU-AE', tax_exemption_reason=cocontractant_note)
 
         if supplier.country_id == customer.country_id:
             if not tax or tax.amount == 0:
