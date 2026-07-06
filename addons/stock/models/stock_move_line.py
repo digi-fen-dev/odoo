@@ -846,7 +846,7 @@ class StockMoveLine(models.Model):
                 'move_orig_ids': [Command.clear()]
             })
         move_line_to_unlink.unlink()
-        move_to_reassign._action_assign()
+        move_to_reassign[::-1]._action_assign()
 
     def _get_aggregated_description(self, move):
         return move.description_picking or ""
@@ -1038,7 +1038,7 @@ class StockMoveLine(models.Model):
                 'location_dest_id': self.location_id.id,
                 'company_id': self.company_id.id or self.env.company.id,
                 'lot_id': self.lot_id.id,
-                'package_id': self.package_id.id,
+                'package_id': self.result_package_id.id,
                 'result_package_id': self.package_id.id,
                 'owner_id': self.owner_id.id,
             })]
