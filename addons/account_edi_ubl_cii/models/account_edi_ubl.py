@@ -1,5 +1,6 @@
 import io
 import logging
+import re
 
 from markupsafe import Markup
 from stdnum.be import vat as be_vat
@@ -1273,6 +1274,7 @@ class AccountEdiUBL(models.AbstractModel):
         }
 
     def _ubl_add_line_period_nodes(self, vals):
+        # DEPRECATED
         nodes = vals['line_node']['cac:InvoicePeriod'] = []
 
         if self._is_document(vals, 'invoice', 'credit_note', 'self_invoice', 'self_credit_note'):
@@ -1601,7 +1603,6 @@ class AccountEdiUBL(models.AbstractModel):
         self._ubl_add_line_invoiced_quantity_node(vals)
         self._ubl_add_line_allowance_charge_nodes(vals)
         self._ubl_add_line_extension_amount_node(vals)
-        self._ubl_add_line_period_nodes(vals)
         self._ubl_add_line_pricing_reference_node(vals)
         self._ubl_add_line_tax_totals_nodes(vals)
         self._ubl_add_line_item_node(vals)
@@ -1619,7 +1620,6 @@ class AccountEdiUBL(models.AbstractModel):
         self._ubl_add_line_credited_quantity_node(vals)
         self._ubl_add_line_allowance_charge_nodes(vals)
         self._ubl_add_line_extension_amount_node(vals)
-        self._ubl_add_line_period_nodes(vals)
         self._ubl_add_line_pricing_reference_node(vals)
         self._ubl_add_line_tax_totals_nodes(vals)
         self._ubl_add_line_item_node(vals)
@@ -1637,7 +1637,6 @@ class AccountEdiUBL(models.AbstractModel):
         self._ubl_add_line_debited_quantity_node(vals)
         self._ubl_add_line_allowance_charge_nodes(vals)
         self._ubl_add_line_extension_amount_node(vals)
-        self._ubl_add_line_period_nodes(vals)
         self._ubl_add_line_pricing_reference_node(vals)
         self._ubl_add_line_tax_totals_nodes(vals)
         self._ubl_add_line_item_node(vals)
@@ -2611,6 +2610,20 @@ class AccountEdiUBL(models.AbstractModel):
             partner_create_values['vat'] = customer_values['vat']
         return partner_create_values
 
+    def _check_customer_vat_match(self, customer, vat, collected_values):
+        """
+        Compare the VAT from an EDI document against a partner's stored VAT,
+        with country-specific normalization where needed.
+        Should stay consistent with `_get_country_specific_vat_variants`.
+        """
+        country = self._import_ubl_get_country(collected_values)
+        customer_vat = customer.vat.replace(' ', '').upper()
+        vat_to_compare = vat.replace(' ', '').replace('.', '').upper()
+        if country.code == 'CH':
+            customer_vat = re.sub(r"(TVA|IVA|MWST)?$", "", customer_vat.replace('.', '').replace('-', ''))
+            vat_to_compare = re.sub(r"(TVA|IVA|MWST)?$", "", vat_to_compare.replace('-', ''))
+        return customer_vat == vat_to_compare
+
     def _import_ubl_create_missing_customer(self, collected_values):
         customer_values = collected_values['customer_values']
         logs = collected_values['logs']
@@ -2628,7 +2641,7 @@ class AccountEdiUBL(models.AbstractModel):
                 if self.env['res.partner']._run_vat_test(vat, country, True):
                     customer.vat = vat
                 return
-            if customer.vat.replace(' ', '') == vat.replace(' ', '').replace('.', ''):
+            if self._check_customer_vat_match(customer, vat, collected_values):
                 return
             vat_mismatch = True
 
@@ -2964,7 +2977,7 @@ class AccountEdiUBL(models.AbstractModel):
         line_extension_amount = line_extension_amount_str and float(line_extension_amount_str) * file_document_sign
         price_amount = price_amount_str and float(price_amount_str)
         invoiced_quantity = invoiced_quantity_str and float(invoiced_quantity_str) * file_document_sign
-        base_quantity = base_quantity_str and float(base_quantity_str) * file_document_sign
+        base_quantity = base_quantity_str and float(base_quantity_str)
 
         total_allowances = sum(allowance['amount'] for allowance in collected_values['allowances'])
         total_charges = sum(charge['amount'] for charge in collected_values['charges'])
@@ -3122,6 +3135,7 @@ class AccountEdiUBL(models.AbstractModel):
         }
 
     def _import_ubl_invoice_line_add_deferred_dates(self, collected_values):
+        # DEPRECATED
         if not self.module_installed('account_accountant'):
             return
 
@@ -3248,10 +3262,9 @@ class AccountEdiUBL(models.AbstractModel):
                 # Extract information about allowance / charges.
                 self._import_ubl_invoice_line_add_allowance_charges_values(line_collected_values)
 
-                # name / quantity / price_unit / discount / deferred_start_date / deferred_end_date
+                # name / quantity / price_unit / discount
                 self._import_ubl_invoice_line_add_name(line_collected_values)
                 self._import_ubl_invoice_line_add_price_unit_quantity_discount(line_collected_values)
-                self._import_ubl_invoice_line_add_deferred_dates(line_collected_values)
 
                 # product / product_uom / taxes
                 self._import_ubl_invoice_line_add_product_values(line_collected_values)
@@ -3378,10 +3391,6 @@ class AccountEdiUBL(models.AbstractModel):
 
         if name := collected_values.get('name'):
             base_line_kwargs['_create_values']['name'] = name
-        if deferred_start_date := to_write.get('deferred_start_date'):
-            base_line_kwargs['_create_values']['deferred_start_date'] = deferred_start_date
-        if deferred_end_date := to_write.get('deferred_end_date'):
-            base_line_kwargs['_create_values']['deferred_end_date'] = deferred_end_date
 
         base_line_kwargs['_create_values'] = {
             **base_line_kwargs['_create_values'],
@@ -3421,10 +3430,15 @@ class AccountEdiUBL(models.AbstractModel):
 
     def _import_ubl_retrieve_products_search_plan(self, collected_values):
         ProductProduct = self.env['product.product']
+        company = collected_values['company']
+        predict_by_name = (
+            not self.module_installed('account_accountant')
+            or company.predict_bill_product
+        )
         return [
             ProductProduct._import_retrieve_product_from_barcode,
             ProductProduct._import_retrieve_product_from_default_code,
-            ProductProduct._import_retrieve_product_from_name,
+            *([ProductProduct._import_retrieve_product_from_name] if predict_by_name else []),
             ProductProduct._import_retrieve_product_from_invoice_predictive,
         ]
 
