@@ -246,7 +246,7 @@ class TestItEdiExport(TestItEdi):
         invoice.action_post()
         self._assert_export_invoice(invoice, 'invoice_total_400_VAT_simplified.xml')
 
-    def test_invoice_more_400_simplified(self):
+    def test_invoice_more_400_is_not_simplified(self):
         invoice = self.env['account.move'].with_company(self.company).create({
             'move_type': 'out_invoice',
             'invoice_date': '2022-03-24',
@@ -260,9 +260,10 @@ class TestItEdiExport(TestItEdi):
                 }),
             ],
         })
+        self.assertFalse(invoice._l10n_it_edi_is_simplified())
         self.assertEqual(['l10n_it_edi_partner_address_missing'], list(invoice._l10n_it_edi_export_data_check().keys()))
 
-    def test_invoice_non_domestic_simplified(self):
+    def test_invoice_non_domestic_is_not_simplified(self):
         invoice = self.env['account.move'].with_company(self.company).create({
             'move_type': 'out_invoice',
             'invoice_date': '2022-03-24',
@@ -276,6 +277,7 @@ class TestItEdiExport(TestItEdi):
                 }),
             ],
         })
+        self.assertFalse(invoice._l10n_it_edi_is_simplified())
         self.assertEqual(['l10n_it_edi_partner_address_missing'], list(invoice._l10n_it_edi_export_data_check().keys()))
 
     def test_bill_refund_no_reconcile(self):
@@ -528,6 +530,49 @@ class TestItEdiExport(TestItEdi):
         )
         invoice.action_post()
         self._assert_export_invoice(invoice, 'test_export_invoice_with_two_downpayments.xml')
+
+    @freeze_time("2025-02-03")
+    def test_export_credit_note_on_downpayment_only_lists_origin_invoice(self):
+        """ A credit note crediting a down payment invoice directly must only reference
+            that invoice in DatiFattureCollegate, not every other move ever linked to the
+            same down payment sale order line (see 'downpayment_moves' in
+            _l10n_it_edi_export_data).
+        """
+        if self.env['ir.module.module']._get('sale').state != 'installed':
+            self.skipTest("sale module is not installed")
+
+        sale_order = self.env['sale.order'].with_company(self.company).create({
+            'partner_id': self.italian_partner_a.id,
+            'order_line': [
+                Command.create({'product_id': self.service_product.id, 'price_unit': 200.00}),
+            ],
+        })
+        sale_order.action_confirm()
+
+        downpayment_invoice = self.env['account.move'].with_company(self.company).browse(
+            self.env['sale.advance.payment.inv'].create([{
+                'advance_payment_method': 'fixed',
+                'fixed_amount': 50,
+                'sale_order_ids': [Command.link(sale_order.id)],
+            }]).create_invoices()['res_id']
+        )
+        downpayment_invoice.action_post()
+
+        # Credit the down payment invoice directly, without reconciling it against
+        # anything else, so DatiFattureCollegate must fall back to reversed_entry_id.
+        credit_note = downpayment_invoice._reverse_moves()
+        credit_note.action_post()
+
+        xml = credit_note._l10n_it_edi_render_xml()
+        xml_root = etree.fromstring(xml)
+        id_documento_nodes = xml_root.xpath('.//DatiFattureCollegate/IdDocumento')
+
+        self.assertEqual(
+            [node.text for node in id_documento_nodes],
+            [downpayment_invoice.name],
+            "DatiFattureCollegate must reference only the down payment invoice this credit "
+            "note credits, not itself nor any other move sharing the down payment line.",
+        )
 
     @freeze_time('2025-03-07')
     def test_send_prezzo_unitario_converted_to_company_currency(self):

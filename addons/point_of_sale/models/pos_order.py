@@ -91,6 +91,7 @@ class PosOrder(models.Model):
 
         pos_order = False
         combo_child_uuids_by_parent_uuid = self._prepare_combo_line_uuids(order)
+        self._check_combo_item_available(order, combo_child_uuids_by_parent_uuid)
 
         if not existing_order:
             pos_order = self.create({
@@ -111,7 +112,11 @@ class PosOrder(models.Model):
                 if order.get(field):
                     existing_record_ids = self.env[pos_order[field]._name].browse([r[1] for r in order[field] if r[1] != 0]).exists().ids
                     existing_records_vals = [r for r in order[field] if r[0] not in [1, 2, 3, 4] or r[1] in existing_record_ids]
+                    existing_ids = set(pos_order[field].ids)
                     pos_order.write({field: existing_records_vals})
+                    added_ids = set(pos_order[field].ids) - existing_ids
+                    if added_ids:
+                        _logger.info("Added %s %s to pos.order #%s", field, list(added_ids), pos_order.id)
                     order[field] = []
 
             del order['uuid']
@@ -144,6 +149,41 @@ class PosOrder(models.Model):
             if not parent_line:
                 continue
             parent_line.combo_line_ids = [(6, 0, self.lines.filtered(lambda line: line.uuid in child_uuids).ids)]
+
+    def _check_combo_item_available(self, order, combo_child_uuids_by_parent_uuid):
+        if not combo_child_uuids_by_parent_uuid:
+            return
+
+        product_by_uuid = {}
+        for line in order.get('lines', []):
+            if len(line) > 2 and isinstance(vals := line[2], dict) and vals.get('uuid'):
+                product_by_uuid[vals['uuid']] = vals['product_id']
+
+        parent_product_ids = {
+            pid
+            for parent_uuid in combo_child_uuids_by_parent_uuid
+            if (pid := product_by_uuid.get(parent_uuid))
+        }
+        parents = self.env['product.product'].browse(parent_product_ids)
+        # Warm the cache for the whole batch: a handful of queries instead of one
+        # set per parent line.
+        parents.product_tmpl_id.combo_ids.combo_item_ids.product_id
+
+        available_ids_by_parent = {
+            parent.id: set(parent.product_tmpl_id.combo_ids.combo_item_ids.product_id.ids)
+            for parent in parents
+        }
+
+        for parent_uuid, children_uuids in combo_child_uuids_by_parent_uuid.items():
+            available_ids = available_ids_by_parent.get(product_by_uuid.get(parent_uuid)) or set()
+            for child_uuid in children_uuids:
+                product_id = product_by_uuid.get(child_uuid)
+                if product_id not in available_ids:
+                    raise UserError(_(
+                        "The combo choice '%s' is no longer available in this combo. "
+                        "Please reload your data.",
+                        self.env['product.product'].browse(product_id).display_name,
+                    ))
 
     def _process_saved_order(self, draft):
         self.ensure_one()
@@ -1106,6 +1146,9 @@ class PosOrder(models.Model):
     def _get_order_log_representation(order):
         return dict((k, order.get(k)) for k in ("name", "uuid"))
 
+    def _should_log_order_data(self):
+        return self.env['ir.config_parameter'].sudo().get_param('point_of_sale.log_order_data', default='False') == 'True'
+
     @api.model
     def sync_from_ui(self, orders):
         """ Create and update Orders from the frontend PoS application.
@@ -1125,7 +1168,8 @@ class PosOrder(models.Model):
         order_ids = []
         for order in orders:
             order_log_name = self._get_order_log_representation(order)
-            _logger.debug("PoS synchronisation #%d processing order %s order full data: %s", sync_token, order_log_name, pformat(order))
+            if self._should_log_order_data():
+                _logger.info("PoS synchronisation #%d processing order %s order full data:\n%s", sync_token, order_log_name, pformat(order))
 
             if len(self._get_refunded_orders(order)) > 1:
                 raise ValidationError(_('You can only refund products from the same order.'))
@@ -1383,6 +1427,9 @@ class PosOrder(models.Model):
         totalCount = self.search_count(real_domain)
         return {'ordersInfo': list(orders_info.items())[::-1], 'totalCount': totalCount}
 
+    def get_ticket_screen_order_data(self):
+        return self.read_pos_data([], self.config_id[:1].id)
+
     def _send_order(self):
         # This function is made to be overriden by pos_self_order_preparation_display
         pass
@@ -1424,7 +1471,14 @@ class PosOrderLine(models.Model):
     is_total_cost_computed = fields.Boolean(help="Allows to know if the total cost has already been computed or not")
     discount = fields.Float(string='Discount (%)', digits=0, default=0.0)
     order_id = fields.Many2one('pos.order', string='Order Ref', ondelete='cascade', required=True, index=True)
-    tax_ids = fields.Many2many('account.tax', string='Taxes', readonly=True)
+    tax_ids = fields.Many2many(
+        comodel_name='account.tax',
+        relation='account_tax_pos_order_line_rel',
+        column1='pos_order_line_id',
+        column2='account_tax_id',
+        string='Taxes',
+        readonly=True,
+    )
     tax_ids_after_fiscal_position = fields.Many2many('account.tax', compute='_get_tax_ids_after_fiscal_position', string='Taxes to Apply')
     pack_lot_ids = fields.One2many('pos.pack.operation.lot', 'pos_order_line_id', string='Lot/serial Number')
     product_uom_id = fields.Many2one('uom.uom', string='Product UoM', related='product_id.uom_id')

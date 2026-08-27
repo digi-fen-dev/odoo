@@ -151,7 +151,7 @@ class AccountMove(models.Model):
     def button_draft(self):
         # OVERRIDE
         for move in self:
-            if move.country_code == "SA" and move.l10n_sa_chain_index and move.company_id.l10n_sa_edi_is_production:
+            if move.country_code == "SA" and move.l10n_sa_chain_index and move.company_id.l10n_sa_api_mode == 'prod':
                 raise UserError(_("The Invoice(s) are linked to a validated EDI document and cannot be modified according to ZATCA rules"))
         return super().button_draft()
 
@@ -238,7 +238,7 @@ class AccountMove(models.Model):
             return
 
         if not response_data.get("excepted"):
-            self.journal_id.l10n_sa_latest_submission_hash = self.env['account.edi.xml.ubl_21.zatca']._l10n_sa_generate_invoice_xml_hash(xml_content)
+            self.journal_id.sudo().l10n_sa_latest_submission_hash = self.env['account.edi.xml.ubl_21.zatca']._l10n_sa_generate_invoice_xml_hash(xml_content)
 
         self.with_context(no_new_invoice=True).message_post(body=Markup("""
                 <div role='alert' class='alert alert-%s'>
