@@ -3429,6 +3429,8 @@ class AccountTax(models.Model):
         # - line2 of -100 having an analytic distribution of 50%
         # After the aggregation, the result will be an analytic distribution of
         # ((1000 * 1) + (-100 * 0.5)) / (1000 - 100) = 1.055555556
+        # In the special case the aggregated line total is 0, set analytic distribution to 100% by default
+        # (could be anything since 100% of 0 or 50% of 0 is the same)
         for grouping_key, base_line in base_line_map.items():
             total_factor = 0.0
             analytic_distribution_to_aggregate = defaultdict(float)
@@ -3439,7 +3441,7 @@ class AccountTax(models.Model):
                     analytic_distribution_to_aggregate[account_id] += distribution * amount / 100.0
             analytic_distribution = {}
             for account_id, amount in analytic_distribution_to_aggregate.items():
-                analytic_distribution[account_id] = amount * 100 / total_factor
+                analytic_distribution[account_id] = (amount * 100 / total_factor) if total_factor else 100.0
             base_line['analytic_distribution'] = analytic_distribution
 
         return list(base_line_map.values())
@@ -4518,6 +4520,53 @@ class AccountTax(models.Model):
             criteria.append({'domain': [('price_include', '=', True)]})
 
         return {'criteria': criteria}
+
+    @api.model
+    def _import_retrieve_tax_from_fixed_allowance_charge(self, tax_values):
+        if tax_values.get('amount_type') != 'fixed':
+            return
+
+        invoice = tax_values.get('invoice_predictive', {}).get('invoice')
+        company_id = invoice.company_id.id if invoice else False
+        calculated_amount = tax_values.get('amount', 0.0)
+        reason = (tax_values.get('name') or '').strip().lower()
+        type_tax_use = tax_values.get('type_tax_use')
+
+        # ignore values param as it has a flawed static_domain, but we have to use it in the function signature
+        def search_fixed_tax_fuzzy(values):
+            candidate_taxes = self.search([
+                ('company_id', 'in', [company_id, False]),
+                ('amount_type', '=', 'fixed'),
+                ('type_tax_use', '=', type_tax_use),
+                ('amount', '>=', calculated_amount - 0.01),
+                ('amount', '<=', calculated_amount + 0.01),
+            ])
+
+            if not candidate_taxes:
+                return self
+
+            if len(candidate_taxes) == 1:
+                return candidate_taxes[0]
+
+            for tax in candidate_taxes:
+                tax_name = tax.name.strip().lower()
+                if reason in tax_name or tax_name in reason:
+                    return tax
+            return self
+
+        cache_key = (
+            company_id,
+            type_tax_use,
+            calculated_amount,
+            reason,
+        )
+
+        return {
+            'criteria': [{
+                'search_method': search_fixed_tax_fuzzy,
+                'cache_key': cache_key,
+            }],
+        }
 
     @api.model
     def _import_retrieve_tax(self, search_plan, company, tax_values_list):
