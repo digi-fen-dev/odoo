@@ -238,7 +238,7 @@ class HrEmployeeBase(models.AbstractModel):
                 employees_without_work_contact += employee
             else:
                 partner = employee.work_contact_id
-                if not employee.user_id:
+                if not employee.user_id and not partner.user_ids:
                     partner = partner.sudo()
                 partner.write({
                     'email': employee.work_email,
@@ -306,7 +306,7 @@ class HrEmployeeBase(models.AbstractModel):
         """
         calendar_periods_by_employee = {}
         for employee in self:
-            calendar = employee.resource_calendar_id or employee.company_id.resource_calendar_id
+            calendar = employee.resource_calendar_id
             calendar_periods_by_employee[employee] = [(start, stop, calendar)]
         return calendar_periods_by_employee
 

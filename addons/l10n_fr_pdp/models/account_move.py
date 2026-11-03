@@ -9,7 +9,7 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.tools import frozendict, html2plaintext
 
 from odoo.addons.l10n_fr_pdp.models.account_edi_proxy_user import STATUS_TO_PROCESS_CONDITION_CODE_PDP
-from odoo.addons.l10n_fr_pdp.models.account_edi_xml_ubl_21_fr import PDP_CUSTOMIZATION_ID, CPRO_CUSTOMIZATION_ID
+from odoo.addons.l10n_fr_pdp.models.account_edi_xml_ubl_21_fr import CPRO_CUSTOMIZATION_ID, EN16931_CUSTOMIZATION_ID
 from odoo.addons.l10n_fr_pdp.models.account_peppol_response import NEW_STATUSES
 from odoo.addons.l10n_fr_pdp.models.pdp_flow import FLOW_OPEN_STATES_SELECTION, FLOW_SENT_STATES, FLOW_SENT_STATES_SELECTION
 from odoo.addons.l10n_fr_pdp.utils import drom_com_territories
@@ -101,7 +101,6 @@ class AccountMove(models.Model):
         selection=[('transaction', 'Transaction'), ('payment', 'Payment')],
         compute='_compute_l10n_fr_pdp_flow_10_report_type',
         store=True,
-        recursive=True,
         copy=False,
     )
     l10n_fr_pdp_flow_10_operation_type = fields.Selection(
@@ -172,7 +171,7 @@ class AccountMove(models.Model):
                 bool(move.peppol_message_uuid)
                 and move.peppol_is_sent
                 and move.company_id._get_peppol_proxy_type() == 'pdp'
-                and move.partner_id._get_pdp_receiver_identification_info()[0] == 'pdp'
+                and move.partner_id.commercial_partner_id._get_pdp_receiver_identification_info()[0] == 'pdp'
             )
 
     @api.depends('pdp_can_send_response')
@@ -237,10 +236,10 @@ class AccountMove(models.Model):
 
     def _pdp_get_tax_extract_state(self):
         self.ensure_one()
-        if not self.peppol_message_uuid or not self.peppol_is_sent:
+        if not self.peppol_message_uuid or not self.pdp_is_sent:
             return False
         tax_extract_responses = self.peppol_response_ids.filtered(lambda l: l.pdp_flow_number == '1' and l.peppol_state == 'done')
-        if not tax_extract_responses:
+        if not tax_extract_responses and self.partner_id.commercial_partner_id._get_pdp_receiver_identification_info()[0] == 'pdp':
             return 'in_progress'
         states = set(tax_extract_responses.mapped('response_code'))
         if {'refused', 'RE'} & states:
@@ -282,14 +281,13 @@ class AccountMove(models.Model):
     def _get_ubl_cii_builder_from_xml_tree(self, tree):
         # Extends account_edi_ubl_cii
         customization_id = tree.findtext('{*}CustomizationID')
-        # Note: The CustomizationID alone is not enough because e.g. SuperPDP just sends `urn:cen.eu:en16931:2017`
-        #       but still expects the full French validation.
         if customization_id == CPRO_CUSTOMIZATION_ID:
             return self.env['account.edi.xml.ubl_21_fr']
-        if customization_id == PDP_CUSTOMIZATION_ID:
-            receiver_endpoint_node = tree.find('./{*}AccountingCustomerParty/{*}Party/{*}EndpointID')
-            if receiver_endpoint_node is not None and receiver_endpoint_node.get('schemeID') == '0225':
-                return self.env['account.edi.xml.ubl_21_fr']
+        # Note: The CustomizationID alone is not enough because e.g. SuperPDP just sends `urn:cen.eu:en16931:2017`
+        #       but still expects the full French validation.
+        company = self.company_id or self.env.company
+        if customization_id == EN16931_CUSTOMIZATION_ID and company._get_peppol_proxy_type() == 'pdp':
+            return self.env['account.edi.xml.ubl_21_fr']
         return super()._get_ubl_cii_builder_from_xml_tree(tree)
 
     def action_pdp_open_response_wizard(self, **wizard_kwargs):
@@ -374,7 +372,9 @@ class AccountMove(models.Model):
                 + Markup('</span><ul>') + error_lines + Markup('</ul></li>')
             )
         body += Markup('</ul>')
-        self._message_log(body=body)
+        # Avoid logging a message with a "random" user
+        author_id = self.env.ref('base.partner_root').id if self.env.user.share else None
+        self._message_log(body=body, author_id=author_id)
 
     def button_cancel(self):
         res = super().button_cancel()
@@ -418,7 +418,10 @@ class AccountMove(models.Model):
                 order='id desc',
                 limit=1,
             )
-            if not last_flow or (last_flow.state in FLOW_SENT_STATES and not move.l10n_fr_pdp_sent_in_flow_ids):
+            if not last_flow or (
+                last_flow.state in FLOW_SENT_STATES
+                and any(not scope_move.l10n_fr_pdp_sent_in_flow_ids for scope_move in moves)
+            ):
                 last_flow = Flow._get_open_flow_and_create_if_needed(moves[0])
             moves.l10n_fr_pdp_last_flow_id = last_flow
 
@@ -494,17 +497,17 @@ class AccountMove(models.Model):
         'commercial_partner_id',
         'l10n_fr_pdp_flow_10_operation_type',
         'line_ids.matched_credit_ids.credit_move_id',
-        'line_ids.matched_credit_ids.credit_move_id.move_id.l10n_fr_pdp_flow_10_report_type',
+        'line_ids.matched_credit_ids.credit_move_id.move_id.pdp_is_sent',
         'line_ids.matched_debit_ids.debit_move_id',
-        'line_ids.matched_debit_ids.debit_move_id.move_id.l10n_fr_pdp_flow_10_report_type',
+        'line_ids.matched_debit_ids.debit_move_id.move_id.pdp_is_sent',
         'move_type',
         'pdp_is_sent',
         'state',
     )
     def _compute_l10n_fr_pdp_flow_10_report_type(self):
         for move in self:
-            if move.pdp_is_sent:
-                if move.l10n_fr_pdp_sent_in_flow_ids:
+            if move.state != 'draft' and move.pdp_is_sent:
+                if move.l10n_fr_pdp_sent_in_flow_ids and move.l10n_fr_pdp_flow_10_report_type:
                     # The previous e-report must be rectified before clearing its scope.
                     self.env['l10n.fr.pdp.reports.flow']._get_open_flow_and_create_if_needed(move)
                 move.l10n_fr_pdp_flow_10_report_type = None
@@ -526,7 +529,7 @@ class AccountMove(models.Model):
                 if move._l10n_fr_pdp_get_matched_transactions():
                     move.l10n_fr_pdp_flow_10_report_type = 'payment'
                 else:
-                    if move.l10n_fr_pdp_sent_in_flow_ids:
+                    if move.l10n_fr_pdp_sent_in_flow_ids and move.l10n_fr_pdp_flow_10_report_type:
                         # payment was sent but is not linked to an invoice anymore, must create rectificative flow
                         self.env['l10n.fr.pdp.reports.flow']._get_open_flow_and_create_if_needed(move)
                     move.l10n_fr_pdp_flow_10_report_type = None
@@ -553,7 +556,7 @@ class AccountMove(models.Model):
             return
 
         return self._get_reconciled_amls().move_id.filtered(
-            lambda move: move.l10n_fr_pdp_flow_10_report_type == 'transaction' and (
+            lambda move: not move.pdp_is_sent and move.l10n_fr_pdp_flow_10_report_type == 'transaction' and (
                 move._is_downpayment()
                 or any(tax.tax_exigibility == 'on_payment' for tax in move.invoice_line_ids.tax_ids)
             )
@@ -578,6 +581,12 @@ class AccountMove(models.Model):
                 yield self.env._("The company SIREN is missing or invalid.")
 
             if transaction_type == 'b2bi':
+                partner_identifier = self.commercial_partner_id._l10n_fr_pdp_get_flow_10_identifier()[1]
+                if not partner_identifier:
+                    if self.commercial_partner_id.country_id in self.env.ref('base.europe').country_ids:
+                        yield self.env._("The partner VAT number is required for EU e-reporting.")
+                    else:
+                        yield self.env._("The partner identifier required for Flow 10 is missing.")
                 try:
                     self.commercial_partner_id.check_vat()
                 except ValidationError:
@@ -597,12 +606,15 @@ class AccountMove(models.Model):
                 if not move.name or not G1_05_RE.match(move.name):
                     yield self.env._("Move name is not valid%s.", ref_move)
                 for tax in move.invoice_line_ids.tax_ids.flatten_taxes_hierarchy():
+                    if tax.amount_type == 'fixed' and tax.amount >= 0 and not tax.price_include:
+                        continue  # An additional fixed charge is an amount, not a VAT percentage.
                     is_valid_oss_rate = (
                         tax._l10n_fr_pdp_is_oss()
                         and tax.amount_type == 'percent'
                         and 0 <= tax.amount <= 100
                     )
-                    if not is_valid_oss_rate and tax.amount not in VALID_PDP_TAX_RATES:
+                    # Reject other fixed taxes even if their amount matches an allowed VAT rate.
+                    if tax.amount_type == 'fixed' or (tax.amount not in VALID_PDP_TAX_RATES and not is_valid_oss_rate):
                         yield self.env._(
                             "Tax %(tax)s is not supported by French e-reporting%(ref_move)s.",
                             tax=tax.display_name,
@@ -707,12 +719,19 @@ class AccountMove(models.Model):
                 and move.state == 'posted'
                 and move.l10n_fr_pdp_last_flow_id.state != 'error'
             ):
+                # Ensure the RE flow exists for the move period. This must happen before clearing
+                # l10n_fr_pdp_sent_in_flow_ids: a move that left the Flow 10 scope gets its RE scope
+                # from the last flow it was sent in.
+                self.env['l10n.fr.pdp.reports.flow']._get_open_flow_and_create_if_needed(move)
+                # A move out of the Flow 10 scope won't be part of the RE, even if posted again.
+                # Keep it in the sent moves of the previous flow, so the RE differs from it and
+                # its removal is transmitted.
+                if not move.l10n_fr_pdp_flow_10_report_type:
+                    continue
                 # When a flow is sent it compares the moves it sends vs the moves of the previous
                 # flow to avoid sending the data twice if it's strictly the same.
                 # Setting "l10n_fr_pdp_sent_in_flow_ids" to None will ensure the move is not already
                 # considered as sent in previous flow, and allow the current flow to be sent even if
                 # it's the only diffrence between the 2 flows.
                 move.l10n_fr_pdp_sent_in_flow_ids = False
-                # Ensure RE flow exist for current move period.
-                self.env['l10n.fr.pdp.reports.flow']._get_open_flow_and_create_if_needed(move)
         return super().button_draft()

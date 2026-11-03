@@ -18,18 +18,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-19 17:38+0000\n"
-"PO-Revision-Date: 2026-07-03 10:33+0000\n"
+"POT-Creation-Date: 2026-10-24 17:38+0000\n"
+"PO-Revision-Date: 2026-10-20 14:54+0000\n"
 "Last-Translator: Alexandru Vajda <vajdasanyi2002@gmail.com>\n"
-"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-18/web/ro/>"
-"\n"
+"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-18/web/ro/"
+">\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 2026.8.1\n"
 
 #. module: web
 #. odoo-javascript
@@ -5705,6 +5705,12 @@ msgstr "Căutare"
 #: code:addons/web/static/src/views/fields/relational_utils.js:0
 msgid "Search More..."
 msgstr "Caută mai mult..."
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/reference/reference_field.js:0
+msgid "Search a record..."
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -26176,7 +26182,7 @@ msgstr "ironic"
 #. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "x"
-msgstr ""
+msgstr "x"
 
 #. module: web
 #. odoo-javascript
