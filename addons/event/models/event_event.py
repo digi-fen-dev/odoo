@@ -115,10 +115,10 @@ class EventEvent(models.Model):
     def _get_default_stage_id(self):
         return self.env['event.stage'].search([], limit=1)
 
-    def _default_description(self):
-        # avoid template branding with rendering_bundle=True
-        return self.env['ir.ui.view'].with_context(rendering_bundle=True) \
-            ._render_template('event.event_default_descripton')
+    # def _default_description(self):
+    #     # avoid template branding with rendering_bundle=True
+    #     return self.env['ir.ui.view'].with_context(rendering_bundle=True) \
+    #         ._render_template('event.event_default_descripton')
 
     def _default_event_mail_ids(self):
         return self.env['event.type']._default_event_mail_type_ids()
@@ -132,7 +132,7 @@ class EventEvent(models.Model):
 
     name = fields.Char(string='Event', translate=True, required=True)
     note = fields.Html(string='Note', store=True, compute="_compute_note", readonly=False)
-    description = fields.Html(string='Description', translate=html_translate, sanitize_attributes=False, sanitize_form=False, default=_default_description)
+    description = fields.Html(string='Description', translate=html_translate, sanitize_attributes=False, sanitize_form=False)
     active = fields.Boolean(default=True)
     user_id = fields.Many2one(
         'res.users', string='Responsible', tracking=True,
